@@ -3,20 +3,21 @@ def diretor_from_web(**kwargs):
         "nome_completo": kwargs["nome_completo"] if "nome_completo" in kwargs else ""
     }
 
-def diretor_from_db(*args):
+def diretor_from_db(diretor):
     return {
-        "id": args[0][0][0],
-        "nome_completo": args[0][0][1]
+        "id": diretor["id"],
+        "nome_completo": diretor["nome_completo"]
     }
 
 def genero_from_web(**kwargs):
     return {
-        "nome": kwargs["nome"] if "nome" in kwargs else "",
+        "nome": kwargs["nome"] if "nome" in kwargs else ""
     }
 
-def genero_from_db(*args):
+def genero_from_db(genero):
     return {
-        "nome": args[0]
+        "id": genero["id"],
+        "nome": genero["nome"]
     }
 
 def filme_from_web(**kwargs):
@@ -29,28 +30,31 @@ def filme_from_web(**kwargs):
         "generos_id": kwargs["generos_id"] if "generos_id" in kwargs else ""
     }
 
-def filme_from_db(*args):
+def filme_from_db(filme):
     return {
-        "titulo": args[0][0][0],
-        "ano": args[0][0][1],
-        "classificacao": args[0][0][2],
-        "preco": str(args[0][0][3]),
-        "diretores_id": args[0][0][4],
-        "generos_id": args[0][0][5]
+        "id": filme["id"],
+        "titulo": filme["titulo"],
+        "ano": filme["ano"],
+        "classificacao": filme["classificacao"],
+        "preco": filme["preco"],
+        "diretores_id": filme["diretores_id"],
+        "generos_id": filme["generos_id"]
     }
 
+# HARUAN
 def usuario_from_web(**kwargs):
     return {
         "nome_completo": kwargs["nome_completo"] if "nome_completo" in kwargs else "",
-        "CPF": kwargs["CPF"] if "cpf" in kwargs else ""
+        "CPF": kwargs["CPF"] if "CPF" in kwargs else ""
     }
 
-def usuario_from_db(*args):
+def usuario_from_db(usuario):
     return {
-        "id": args[0],
-        "nome_completo": args[0],
-        "CPF": args[0]
+        "id": usuario["id"],
+        "nome_completo": usuario["nome_completo"],
+        "CPF": usuario["CPF"]
     }
+
 
 def delete_id_from_web(**kwargs):
     return {

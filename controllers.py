@@ -1,147 +1,160 @@
 from flask import Flask, jsonify, request
-from serializers import diretor_from_web, diretor_from_db, genero_from_web, genero_from_db, filme_from_web, filme_from_db, usuario_from_db, usuario_from_web, delete_id_from_web, delete_id_from_db
-from validators import valida_diretor, valida_genero, valida_filme, valida_usuario, valida_id
-from models import insert_diretor, insert_genero, insert_filme, insert_usuario, update_diretor, update_genero, update_filme, update_usuario, delete_diretor, delete_genero, delete_filme, delete_usuario, select_diretor, get_diretor, get_filme, get_genero
 
+from serializers import diretor_from_web, diretor_from_db, \
+                        genero_from_web, genero_from_db, \
+                        filme_from_web, filme_from_db, \
+                        usuario_from_web, usuario_from_db, \
+                        delete_id_from_web, delete_id_from_db
+
+import validators
+
+import models
+                   
 app = Flask(__name__)
 
 # CREATE
 @app.route("/diretores", methods=["POST"])
 def inserir_diretor():
     diretor = diretor_from_web(**request.json)
-    if valida_diretor(**diretor):
-        insert_diretor(**diretor)
-        diretor_inserido = get_diretor(diretor["nome_completo"])
-        return jsonify(diretor_from_db(diretor_inserido))
+    if validators.valida_diretor(**diretor):
+        id_diretor = models.insert_diretor(**diretor)
+        diretor_cadastrado = models.get_diretor(id_diretor)
+        return jsonify(diretor_from_db(diretor_cadastrado))
     else:
         return jsonify({"erro": "Diretor Inválido."})
 
 @app.route("/generos", methods=["POST"])
 def inserir_genero():
     genero = genero_from_web(**request.json)
-    if valida_genero(**genero):
-        insert_genero(**genero)
-        return jsonify(genero_from_db(genero))
+    if validators.valida_genero(**genero):
+        id_genero = models.insert_genero(**genero)
+        genero_cadastrado = models.get_genero(id_genero)
+        return jsonify(genero_from_db(genero_cadastrado))
     else:
         return jsonify({"erro": "Gênero Inválido."})
 
 @app.route("/filmes", methods=["POST"]) # SALVAR
 def inserir_filme():
     filme = filme_from_web(**request.json)
-    if valida_filme(**filme):
-        id = insert_filme(**filme)
-        filme_inserido = get_filme(id)
-        return jsonify(filme_from_db(filme_inserido))
+    if validators.valida_filme(**filme):
+        id_filme = models.insert_filme(**filme)
+        filme_cadastrado = models.get_filme(id_filme)
+        return jsonify(filme_from_db(filme_cadastrado))
     else:
         return jsonify({"erro": "Filme Inválido."})
 
 @app.route("/usuarios", methods=["POST"])
 def inserir_usuario():
-    usuario = usuario_from_web(**request.json)
-    if valida_usuario(**usuario):
-        insert_usuario(**usuario)
-        return jsonify(usuario_from_db(usuario))
+    usuario = usuario_from_web(**request.json)  # 3 - formata o que vem da internet
+    if validators.valida_usuario(**usuario):
+        id_usuario = models.insert_usuario(**usuario)
+        usuario_cadastrado = models.get_usuario(id_usuario)
+        return jsonify(usuario_from_db(usuario_cadastrado))
     else:
-        return jsonify({"erro": "Usuário Inválido."})
+        return jsonify({"erro": "Usuário inválido"})
 
 # PUT/PATCH
 @app.route("/diretores/<int:id>", methods=["PUT"])
 def alterar_diretor(id):
     diretor = diretor_from_web(**request.json)
-    if valida_id(id):
-        update_diretor(id, **diretor)
-        return jsonify(diretor_from_db(diretor))
+    if validators.valida_diretor(**diretor):
+        models.update_diretor(id, **diretor)
+        diretor_cadastrado = models.get_diretor(id)
+        return jsonify(diretor_from_db(diretor_cadastrado))
     else:
         return jsonify({"erro": "Diretor Inválido."})
 
 @app.route("/generos/<int:id>", methods=["PUT"])
 def alterar_genero(id):
     genero = genero_from_web(**request.json)
-    if valida_id(id):
-        update_genero(id, **genero)
-        return jsonify(genero_from_db(genero))
+    if validators.valida_genero(**genero):
+        models.update_genero(id, **genero)
+        genero_cadastrado = models.get_genero(id)
+        return jsonify(genero_from_db(genero_cadastrado))
     else:
         return jsonify({"erro": "Genêro Inválido."})
 
 @app.route("/filmes/<int:id>", methods=["PUT"])
 def alterar_filme(id):
     filme = filme_from_web(**request.json)
-    if valida_id(id):
-        update_filme(id, **filme)
-        return jsonify(filme_from_db(filme))
+    if validators.valida_filme(**filme):
+        models.update_filme(id, **filme)
+        filme_cadastrado = models.get_filme(id)
+        return jsonify(filme_from_db(filme_cadastrado))
     else:
         return jsonify({"erro": "Filme Inválido."})
 
-@app.route("/usuarios/<int:id>", methods=["PUT"])
+@app.route("/usuarios/<int:id>", methods=["PUT", "PATCH"])
 def alterar_usuario(id):
-    usuario = usuario_from_web(**request.json)
-    if valida_id(id):
-        update_usuario(id, **usuario)
-        return jsonify(usuario_from_db(usuario))
+    usuario = usuario_from_web(**request.json)  # 3 - formata o que vem da internet
+    if validators.valida_usuario(**usuario):
+        models.update_usuario(id, **usuario)
+        usuario_cadastrado = models.get_usuario(id)
+        return jsonify(usuario_from_db(usuario_cadastrado))
     else:
-        return jsonify({"erro": "Usuário Inválido."})
+        return jsonify({"erro": "Usuário inválido"})
 
 # DELETE
 @app.route("/diretores/<int:id>", methods=["DELETE"])
 def apagar_diretor(id):
-    diretor_id = delete_id_from_web(**request.json)
     try:
-        if valida_id(id):
-            delete_diretor(**diretor_id)
-            return jsonify(delete_id_from_db(diretor_id))
+        models.delete_diretor(id)
+        return None, 204
     except:
         return jsonify({"erro": "É impossível apagar este diretor."})
 
 @app.route("/generos/<int:id>", methods=["DELETE"])
 def apagar_genero(id):
-    genero_id = delete_id_from_web(**request.json)
     try:
-        if valida_id(id):
-            delete_genero(**genero_id)
-            return jsonify(delete_id_from_db(genero_id))
+        models.delete_genero(id)
+        return None, 204
     except:
         return jsonify({"erro": "É impossível apagar este gênero."})
 
 @app.route("/filmes/<int:id>", methods=["DELETE"])
 def apagar_filme(id):
-    filme_id = delete_id_from_web(**request.json)
     try:
-        if valida_id(id):
-            delete_filme(**filme_id)
-            return jsonify(delete_id_from_db(filme_id))
+        models.delete_filme(id)
+        return None, 204
     except:
         return jsonify({"erro": "É impossível apagar este filme."})
 
 @app.route("/usuarios/<int:id>", methods=["DELETE"])
 def apagar_usuario(id):
-    usuario_id = delete_id_from_web(**request.json)
     try:
-        if valida_id(id):
-            delete_usuario(**usuario_id)
-            return jsonify(delete_id_from_db(usuario_id))
+        models.delete_usuario(id)
+        return None, 204
     except:
-        return jsonify({"erro": "É impossível apagar este usuário."})
+        return jsonify({"erro": "Usuário possui itens conectados a ele"})
 
 # SELECT
 @app.route("/diretores", methods=["GET"])
 def buscar_diretor():
-    diretor = diretor_from_web(**request.json)
-    select_diretor(**diretor)
-    diretor_selecionado = get_diretor(diretor["nome_completo"])
-    if diretor_selecionado != None:
-        return jsonify(diretor_from_db(diretor_selecionado))
-    elif diretor_selecionado == None:
-        return jsonify({"erro": "Diretor não encontrado."})
+    diretor = diretor_from_web(**request.args)
+    diretores = models.select_diretor(diretor)
+    diretor_from_db = [diretor_from_db(diretor) for diretor in diretores]
+    return jsonify(diretor_from_db) 
 
 @app.route("/generos", methods=["GET"])
 def buscar_generos():
-    genero = genero_from_web(**request.json)
-    select_genero(**genero)
-    genero_selecionado = get_genero(genero["nome"])
-    if genero_selecionado != None:
-        return jsonify(genero_from_db(genero_selecionado))
-    elif diretor_selecionado == None:
-        return jsonify({"erro": "Diretor não encontrado."})
+    genero = genero_from_web(**request.args)
+    generos = models.select_genero(genero)
+    genero_from_db = [genero_from_db(genero) for genero in generos]
+    return jsonify(genero_from_db)
+
+@app.route("/filmes", methods=["GET"])
+def buscar_filmes():
+    filme = filme_from_web(**request.args)
+    filmes = models.select_filme(filme)
+    filme_from_db = [filme_from_db(filme) for filme in filmes]
+    return jsonify(filme_from_db)
+
+@app.route("/usuarios", methods=["GET"])
+def buscar_usuario():
+    nome_completo = usuario_from_web(**request.args)
+    usuarios = models.select_usuario(nome_completo)
+    usuarios_from_db = [usuario_from_db(usuario) for usuario in usuarios]
+    return jsonify(usuarios_from_db)
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", debug=True)
