@@ -1,14 +1,16 @@
-from flask import Flask, jsonify, request
-
 from serializers import diretor_from_web, diretor_from_db, \
                         genero_from_web, genero_from_db, \
                         filme_from_web, filme_from_db, \
                         usuario_from_web, usuario_from_db, \
-                        delete_id_from_web, delete_id_from_db
+                        delete_id_from_web, delete_id_from_db, \
+                        locacao_from_web, locacao_from_db, \
+                        pagamento_from_web, pagamento_from_db
 
+from flask import Flask, jsonify, request
 import validators
-
 import models
+from datetime import timedelta, datetime
+from random import randint, choice
                    
 app = Flask(__name__)
 
@@ -53,6 +55,33 @@ def inserir_usuario():
     else:
         return jsonify({"erro": "Usuário inválido"})
 
+@app.route("/locacoes", methods=["POST"])
+def inserir_locacao():
+    locacao = locacao_from_web(**request.json)
+    dia_da_locacao = datetime.now()
+    prazo = timedelta(hours=48, minutes=0, seconds=0)
+    prazo_final = dia_da_locacao + prazo
+    if validators.valida_locacao(**locacao):
+        id_locacao = models.insert_locacao(dia_da_locacao, prazo_final, **locacao)
+        locacao_cadastrada = models.get_locacao(id_locacao)
+        return jsonify(locacao_from_db(locacao_cadastrada))
+    else:
+        return jsonify({"erro": "Locação inválida"})
+
+@app.route("/pagamentos", methods=["POST"])
+def inserir_pagamento():
+    pagamento = pagamento_from_web(**request.json)
+    status_dos_pagamentos = ("aprovado", "em analise", "reprovado")
+    status_atual = choice(status_dos_pagamentos)
+    codigo = randint(0, 1000)
+    data_pagamento = datetime.now()
+    if validators.valida_pagamento(**pagamento):
+        id_pagamento = models.insert_pagamento(status_atual, codigo, data_pagamento, **pagamento)
+        pagamento_registrado = models.get_pagamento(id_pagamento)
+        return jsonify(pagamento_from_db(pagamento_registrado))
+    else:
+        return jsonify({"erro": "Pagamento inválido"})
+
 # PUT/PATCH
 @app.route("/diretores/<int:id>", methods=["PUT"])
 def alterar_diretor(id):
@@ -94,12 +123,22 @@ def alterar_usuario(id):
     else:
         return jsonify({"erro": "Usuário inválido"})
 
+# @app.route("/locacoes/<int:id>", methods=["PUT", "PATCH"])
+# def alterar_locacao(id):
+#     locacao = locacao_from_web(**request.json)
+#     if validators.valida_locacao(**locacao):
+#         models.update_locacao(id, **locacao)
+#         locacao_cadastrada = models.get_locacao(id)
+#         return jsonify(locacao_from_web(locacao_cadastrada))
+#     else:
+#         return jsonify({"erro": "Locação inválida"})
+
 # DELETE
 @app.route("/diretores/<int:id>", methods=["DELETE"])
 def apagar_diretor(id):
     try:
         models.delete_diretor(id)
-        return None, 204
+        return ('', 204)
     except:
         return jsonify({"erro": "É impossível apagar este diretor."})
 
@@ -107,7 +146,7 @@ def apagar_diretor(id):
 def apagar_genero(id):
     try:
         models.delete_genero(id)
-        return None, 204
+        return ('', 204)
     except:
         return jsonify({"erro": "É impossível apagar este gênero."})
 
@@ -115,7 +154,7 @@ def apagar_genero(id):
 def apagar_filme(id):
     try:
         models.delete_filme(id)
-        return None, 204
+        return ('', 204)
     except:
         return jsonify({"erro": "É impossível apagar este filme."})
 
@@ -123,36 +162,44 @@ def apagar_filme(id):
 def apagar_usuario(id):
     try:
         models.delete_usuario(id)
-        return None, 204
+        return ('', 204)
     except:
         return jsonify({"erro": "Usuário possui itens conectados a ele"})
+
+# @app.route("/locacoes/<int:id>", methods=["DELETE"])
+# def apagar_locacao(id):
+#     try:
+#         models.delete_locacao(id)
+#         return ('', 204)
+#     except:
+#         return jsonify({"erro": "É impossível apagar este dado do banco."})
 
 # SELECT
 @app.route("/diretores", methods=["GET"])
 def buscar_diretor():
     diretor = diretor_from_web(**request.args)
-    diretores = models.select_diretor(diretor)
-    diretor_from_db = [diretor_from_db(diretor) for diretor in diretores]
-    return jsonify(diretor_from_db) 
+    diretores = models.select_diretor(diretor["nome_completo"])
+    diretores_from_db = [diretor_from_db(diretor) for diretor in diretores]
+    return jsonify(diretores_from_db) 
 
 @app.route("/generos", methods=["GET"])
 def buscar_generos():
     genero = genero_from_web(**request.args)
-    generos = models.select_genero(genero)
-    genero_from_db = [genero_from_db(genero) for genero in generos]
-    return jsonify(genero_from_db)
+    generos = models.select_genero(genero["nome"])
+    generos_from_db = [genero_from_db(genero) for genero in generos]
+    return jsonify(generos_from_db)
 
 @app.route("/filmes", methods=["GET"])
 def buscar_filmes():
     filme = filme_from_web(**request.args)
-    filmes = models.select_filme(filme)
-    filme_from_db = [filme_from_db(filme) for filme in filmes]
-    return jsonify(filme_from_db)
+    filmes = models.select_filme(filme["titulo"])
+    filmes_from_db = [filme_from_db(filme) for filme in filmes]
+    return jsonify(filmes_from_db)
 
 @app.route("/usuarios", methods=["GET"])
 def buscar_usuario():
     nome_completo = usuario_from_web(**request.args)
-    usuarios = models.select_usuario(nome_completo)
+    usuarios = models.select_usuario(nome_completo["nome_completo"])
     usuarios_from_db = [usuario_from_db(usuario) for usuario in usuarios]
     return jsonify(usuarios_from_db)
 
