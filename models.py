@@ -1,6 +1,8 @@
-from cmd_banco import insert, update, delete, select, select_like
-from controllers import inserir_diretor, inserir_genero, inserir_filme, inserir_usuario
+from cmd_banco import insert, update, delete, select, select_like, query
+from controllers import inserir_diretor, inserir_genero, inserir_filme, inserir_usuario, inserir_locacao, inserir_pagamento
 import decimal, json
+import time
+time.strftime('%Y-%m-%d %H:%M:%S')
 
 # BLOCO INSERT
 
@@ -16,6 +18,14 @@ def insert_filme(titulo, ano, classificacao, preco, diretores_id, generos_id):
 
 def insert_usuario(nome_completo, CPF):
     return insert("usuarios", ["nome_completo", "CPF"], [nome_completo, CPF])
+
+def insert_locacao(data_inicio, data_fim, filmes_id, usuarios_id):
+    return insert("locacoes", ["data_inicio", "data_fim", "filmes_id", "usuarios_id"],
+        [data_inicio, data_fim, filmes_id, usuarios_id])
+
+def insert_pagamento(tipo, status, codigo_pagamento, valor, data, locacoes_id):
+    return insert("pagamentos", ["tipo", "status", "codigo_pagamento", "valor", "data", "locacoes_id"],
+                  [tipo, status, codigo_pagamento, valor, data, locacoes_id])
 
 # BLOCO UPDATE
 
@@ -45,7 +55,7 @@ def delete_filme(id_filme):
 def delete_usuario(id_usuario):
     delete("usuarios", "id", id_usuario)
 
-# SELECTS
+# SELECTS & GETS
 
 # diretor
 def select_diretor(nome_completo):
@@ -77,3 +87,27 @@ def select_usuario(nome_completo):
 
 def get_usuario(id_usuario):
     return select("usuarios", "id", id_usuario)[0]
+
+
+# locação
+def select_locacao():
+    return query("""
+        
+        SELECT
+        p.id as id, u.nome_completo as usuario, l.filmes_id as id, l.usuarios_id as usuario, l.data_inicio as data_locacao, l.data_fim AS data_entrega
+        FROM locacoes l
+        INNER JOIN pagamento p ON p.locacoes_id = l.id
+        INNER JOIN usuarios u ON u.id = l.usuarios_id
+        
+        """)
+
+def get_locacao(id_locacao):
+    return select("locacoes", "id", id_locacao)[0]
+
+
+# pagamento
+def select_pagamento(id):
+    return select_like("pagamentos", "id", id)
+
+def get_pagamento(id_pagamento):
+    return select("pagamentos", "id", id_pagamento)[0]
