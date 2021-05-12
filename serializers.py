@@ -59,8 +59,6 @@ def usuario_from_db(usuario):
 
 def locacao_from_web(**kwargs):
     return {
-        "data_inicio": kwargs["data_inicio"] if "data_inicio" in kwargs else "",
-        "data_fim": kwargs["data_fim"] if "data_fim" in kwargs else "",
         "filmes_id": kwargs["filmes_id"] if "filmes_id" in kwargs else "",
         "usuarios_id": kwargs["usuarios_id"] if "usuarios_id" in kwargs else "",
     }
@@ -68,10 +66,14 @@ def locacao_from_web(**kwargs):
 def locacao_from_db(locacao):
     return {
         "id": locacao["id"],
-        "data_inicio": locacao["data_inicio"],
-        "data_fim": locacao["data_fim"],
+        "data_inicio": (locacao["data_inicio"]).strftime('%d-%m-%Y %H:%M:%S'),
+        "data_fim": (locacao["data_fim"]).strftime('%d-%m-%Y %H:%M:%S'),
         "filmes_id": locacao["filmes_id"],
         "usuarios_id": locacao["usuarios_id"],
+        "tipo": str(locacao["tipo"]),
+        "status": locacao["status"],
+        "codigo_pagamento": locacao["codigo_pagamento"],
+        "valor": locacao["valor"],
     }
 
 def pagamento_from_web(**kwargs):

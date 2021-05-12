@@ -92,22 +92,25 @@ def get_usuario(id_usuario):
 # locação
 def select_locacao():
     return query("""
-        
         SELECT
         p.id as id, u.nome_completo as usuario, l.filmes_id as id, l.usuarios_id as usuario, l.data_inicio as data_locacao, l.data_fim AS data_entrega
         FROM locacoes l
         INNER JOIN pagamento p ON p.locacoes_id = l.id
         INNER JOIN usuarios u ON u.id = l.usuarios_id
-        
         """)
 
-def get_locacao(id_locacao):
-    return select("locacoes", "id", id_locacao)[0]
+def get_locacao(id1, id2):
+    return query(f"""SELECT locacoes.id, pagamentos.id FROM locacoes 
+                INNER JOIN pagamentos ON locacoes.id = pagamentos.locacoes_id
+                WHERE locacoes.%s = pagamentos.%s""", (id1, id2))[0] 
+
+def get_locacao_id(id):
+    return select("locacoes", "id", id)[0]["id"]
 
 
 # pagamento
 def select_pagamento(id):
     return select_like("pagamentos", "id", id)
 
-def get_pagamento(id_pagamento):
-    return select("pagamentos", "id", id_pagamento)[0]
+def get_preco(id):
+    return select("filmes", "id", id)[0]["preco"]

@@ -58,13 +58,21 @@ def inserir_usuario():
 @app.route("/locacoes", methods=["POST"])
 def inserir_locacao():
     locacao = locacao_from_web(**request.json)
+    status_dos_pagamentos = ("aprovado", "em analise", "reprovado")
+    tipos_de_pagamentos = ("debito", "credito", "paypal")
+    status_atual = choice(status_dos_pagamentos)
+    tipo_atual = choice(tipos_de_pagamentos)
+    codigo = randint(0, 1000)
     dia_da_locacao = datetime.now()
     prazo = timedelta(hours=48, minutes=0, seconds=0)
     prazo_final = dia_da_locacao + prazo
     if validators.valida_locacao(**locacao):
-        id_locacao = models.insert_locacao(dia_da_locacao, prazo_final, **locacao)
-        locacao_cadastrada = models.get_locacao(id_locacao)
-        return jsonify(locacao_from_db(locacao_cadastrada))
+        id1 = models.insert_locacao(dia_da_locacao, prazo_final, **locacao)
+        preco = models.get_preco(id)
+        locacao_id = models.get_locacao_id(id1)
+        id2 = models.insert_pagamento(tipo_atual, status_atual, codigo, preco, dia_da_locacao, locacao_id)
+        locacao_inserido = models.get_locacao(id1, id2)
+        return jsonify(locacao_from_db(locacao_inserido))
     else:
         return jsonify({"erro": "Locação inválida"})
 
@@ -202,6 +210,13 @@ def buscar_usuario():
     usuarios = models.select_usuario(nome_completo["nome_completo"])
     usuarios_from_db = [usuario_from_db(usuario) for usuario in usuarios]
     return jsonify(usuarios_from_db)
+
+@app.route("/locacoes", methods=["GET"])
+def buscar_locacao():
+    id = locacao_from_web(**request.args)
+    locacoes = models.query_locacao(id["id"])
+    locacao_from_db = [locacao_from_db(locacao) for locacao in locacoes]
+    return jsonify(locacao_from_db)
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", debug=True)
