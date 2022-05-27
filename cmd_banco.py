@@ -1,14 +1,14 @@
 from mysql.connector import connect
 
 def execute(sql, params=None):
-    with connect(host="localhost", user="root", password="Kengmec889322860357", database="locadora") as conn:
+    with connect(host="localhost", user="root", password="", database="locadora") as conn:
         with conn.cursor() as cursor:
             cursor.execute(sql, params)
             conn.commit()
             return cursor.lastrowid
 
 def query(sql, params=None):
-    with connect(host="localhost", user="root", password="Kengmec889322860357", database="locadora") as conn:
+    with connect(host="localhost", user="root", password="", database="locadora") as conn:
         with conn.cursor(dictionary=True) as cursor:
             cursor.execute(sql, params)
             return cursor.fetchall()
